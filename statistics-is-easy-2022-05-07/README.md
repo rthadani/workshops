@@ -5,7 +5,7 @@
 ```
 (comment (clerk/serve! {:browse? true
                :watch-paths ["."]})
-         (clerk/show!))
+         (clerk/show! ("src/workshop.clj")))
 ```
 The notebook should appear in the browser at (http://localhost:7777)
 

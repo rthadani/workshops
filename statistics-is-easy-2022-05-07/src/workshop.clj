@@ -22,7 +22,6 @@
 ;- [kixi-stats](https://github.com/MastodonC/kixi.stats) to verify stats using classical statistics
 
 (ns statistics-is-easy.workshop
-  "First of the two workshops on statistical inference"
   (:require [aerial.hanami.templates :as ht]
             [aerial.hanami.common :as hc]
             [kixi.stats.core :as kcore]
@@ -35,7 +34,7 @@
 ^:clerk/hide
 (comment (clerk/serve! {:browse? true
                :watch-paths ["."]})
-         (clerk/show!))
+         (clerk/show! "src/workshop.clj"))
 
 ;## Experiment 1
 ;Is a coin fair if I told you that I observed 15 heads in 17 coin tosses  
@@ -49,20 +48,21 @@
 ; distribution
 ;- Bootstrapping - we create new samples of the same size as the original by choosing values from the original“
 ;"uniformly at random and with replacement.”
-;- p-value(Significance test) - measure how unlikely it is to observe the alternate hypothesis 
+;- p-value(Significance test) - measure how unlikely it is to observe the alternate hypothesis. Values <= 0.05 or < 5%  of the total values are  considered significant
 ;- Binomial distribution - Type of distribution drawn from tests where each test(Bernoulli trial) has two possible outcomes 
 ;- Z-test - Measure the p-value using a statistical method 
 
 
 (defn apply-prob
- "Create a large number of buckets to draw from  and split them up based on the p parameter.
- Any random drawing that draws from the right side is considered a success
+ "Create a large number of buckets(2000) to draw from  and split them up based on the p parameter.
+ Any random drawing that draws from the left side is considered a success
  p indicates the probability of a success and is used to split a bucket into two
  n is the number of times we want to try an experiment in the case of this one we want to toss a coin 17 times"
   [p n]
   (let [draw-space (-> (/ 1 p) (* 1000) #_(+ 0.05))]
     (reduce (fn [success draw]
-              (if (>= (* p draw-space)  draw)
+              ;(println draw-space (* p draw-space) draw)
+              (if (>= (* p draw-space)  draw) ; draw = 700 (* p draw-space) = 1000  1000 > 700  (success)
                 (inc success)
                 success))
             0
@@ -116,10 +116,10 @@
                         (render-one "red" "B" "" 
                                     (map (fn [s] {:x s :y 1}) 
                                          (repeatedly 10000 #(apply-prob b-prob trials)))
-                                    :opacity 0.8)])
+                                    :opacity 0.5)])
       clerk/vl))
 
-;(render-ab 0.5 (/ 15 17) 17 "number of samples")
+(render-ab 0.5 (/ 15 17) 17 "number of samples")
 
 ;Encode the experiment - the result is the p-value which says how unlikely the alternate hypothesis is
 (defn experiment
@@ -164,8 +164,8 @@
 ;Take the instance of an online game company that introduces a new feature 
 ;where the normal retention rate is 70% after introducing the feature we observe
 ;that 38 of 97 people revisit the site. Is there a real problem with this feature?
-(render-ab 0.7 (float (/ 38 97)) 97 "number of samples")
-(experiment 70 100 (float (/ 38 97)) 10000)
+(render-ab 0.7 (float (/ 55 97)) 97 "number of samples")
+(experiment 70 100 (float (/ 55 97)) 10000)
 ;What are assumptions we made here
 ;- Is the population being tested similar to the one that logged in prior to the new feature
 ;- The tests are independent
@@ -175,13 +175,14 @@
 ;When doing an A/B experiment the normal click through rate(Number of users clicking impressions)  is 2%. 
 ; The adtech company has changed the way ads are being selected for display and observes that of the 900 impressions presented 30 users clicked into the ads. 
 ; Is the new selection system better
-#_ (render-ab 0.02 (float (/ 30 900)) 900 "number of samples")
+(render-ab 0.02 (float (/ 30 900)) 900 "number of samples")
 (experiment 30 900 0.02 10000)
 
 
 ;Let us assume you have 1000 users, 550 were directed to site A, 450 to site B. 
 ;In site A, 48 users converted. In site B, 56 users converted. Is this a statistically significant result? 
-(render-ab (float (/ 48 550)) (float (/ 56 450)) 450 "number of samples")
+(render-ab (float (/ 48 550)) (float (/ 56 450)) 450 "number of samples") 
+(experiment 56 450 (float (/ 48 550)) 10000)
 
 ;## Experiment 2 
 ;Test the effectiveness of a drug
